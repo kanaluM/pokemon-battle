@@ -1,33 +1,38 @@
 package main
 
+import (
+	"fmt"
+	"math/rand"
+)
+
 // the turn function for player
 // returns a list of messages
 // checks for status hindrance, accuracy
-func UserTurnAttack(attacker &Pokemon, defender &Pokemon, move &Move) ([]string) {
+func UserTurnAttack(attacker *Pokemon, defender *Pokemon, move *Move) ([]string) {
 
 	// check for volatile status
-	canAttack, msg := CanAttackWithVolatileStatus(attacker &Pokemon) 
+	canAttack, msg := CanAttackWithVolatileStatus(attacker) 
 	if !canAttack {
 		return []string{msg}
 	}
 
 	// check for non-volatile status
-	canAttack, msg = CanAttackWithNonVolatileStatus(attacker &Pokemon) 
+	canAttack, msg = CanAttackWithNonVolatileStatus(attacker) 
 	if !canAttack {
 		return []string{msg}
 	}
 
 	// initialize slice of messages to return
-	messages = []string{attacker.name + " used " + move.moveName}
+	messages := []string{attacker.name + " used " + move.name}
 
 	// accuracy check
-    attackLands, message = AccuracyCheck(attacker, move)
+    attackLands, message := AccuracyCheck(attacker, move)
     if !attackLands {
         return append(messages, message)
     }
 
 	// move lands, calculate damage dealt
-	damage, msgs = DamageCalc(attacker, defender, move)
+	damage, msgs := DamageCalc(attacker, defender, move)
 	messages = append(messages, msgs...)
 
 	// apply damage to target
@@ -41,9 +46,13 @@ func UserTurnAttack(attacker &Pokemon, defender &Pokemon, move &Move) ([]string)
             
 	// apply statuses
 	msg = ApplyVolatileStatus(defender, move)
-	if msg { messages = append(messages, msg) }
+	if msg != ""{ 
+		messages = append(messages, msg) 
+	}
 	msg = ApplyNonVolatileStatus(defender, move)
-	if msg { messages = append(messages, msg) }
+	if msg != "" { 
+		messages = append(messages, msg) 
+	}
 
 	return messages
 }
@@ -52,17 +61,17 @@ func UserTurnAttack(attacker &Pokemon, defender &Pokemon, move &Move) ([]string)
 // the turn function for AI opponent
 // returns a list of messages
 // checks for status hindrance, accuracy
-func AITurnAttack(attacker &Pokemon, defender &Pokemon) ([]string) {
+func AITurnAttack(attacker *Pokemon, defender *Pokemon) ([]string) {
 
 	// AI chooses the move with the highest damage
 	damage := 0
-	chosenMove := &Move{}
-	for mv := attacker.moves {
-		move := &moveList[mv]
-		dmg, _ := DamageCalc(attacker, defender, move)
+	var chosenMove *Move
+	for _, mv := range attacker.moves {
+		move := MoveList[mv]
+		dmg, _ := DamageCalc(attacker, defender, &move)
 		if dmg > damage {
 			damage = dmg
-			chosenMove = move
+			chosenMove = &move
 		}
 	}
 
@@ -72,12 +81,12 @@ func AITurnAttack(attacker &Pokemon, defender &Pokemon) ([]string) {
 
 
 // after each turn, check all pokemon on field for status effects and apply damage
-func PostTurnStatusEffects(pokemonInPlay [2]&Pokemon) ([]string) {
+func PostTurnStatusEffects(pokemonInPlay [2]*Pokemon) ([]string) {
 	pokemonInPlay = TurnOrder(pokemonInPlay)
-	messages := []string
+	var messages []string
 
 	// check each pokemon for volatile status effects
-	for pokemon := range pokemonInPlay {
+	for _, pokemon := range pokemonInPlay {
 
 		// check for residual status damage
 		damage := 0
@@ -118,7 +127,6 @@ func BattleOutcomeMessage(wonBattle bool) (string) {
 
 // returns a more complex message based on the outcome of the battle
 func PostBattleMessage(winMessages []string, loseMessages []string, wonBattle bool) (string) {
-	reasons[rand.Intn(len(reasons))]
 	if wonBattle {
 		return winMessages[rand.Intn(len(winMessages))]
 	} else {
@@ -129,14 +137,14 @@ func PostBattleMessage(winMessages []string, loseMessages []string, wonBattle bo
 
 // wrapper function for everything that happens in one turn
 // returns a bunch of messages for each player
-func WholeTurn(userOneInput &UserInput,userTwoInput &UserInput) ([2][]string) {
+func WholeTurn(userOneInput *UserInput, userTwoInput *UserInput) [2][]string {
 
 	var msgs [2][]string
 
 	// turn order
-	pkmn1 = userOneInput.pokemon
-	pkmn2 = userTwoInput.pokemon
-	var pkmnList [2]&Pokemon{pkmn1, pkmn2}
+	pkmn1 := userOneInput.activePokemon
+	pkmn2 := userTwoInput.activePokemon
+	pkmnList := [2]*Pokemon{pkmn1, pkmn2}
 	pkmnList = TurnOrder(pkmnList)
 
 	// player 1 attacks
@@ -161,3 +169,36 @@ func WholeTurn(userOneInput &UserInput,userTwoInput &UserInput) ([2][]string) {
 
 	return msgs
 }
+
+
+// returns true if all pokemon on team are fainted
+func IsLoser(team []*Pokemon) bool {
+	for _, p := range team {
+		if !p.fainted {
+			return false
+		}
+	}
+	return true
+}
+
+// wrapper function for a whole 6v6 singles battle
+func Battle(userOneInput *UserInput, userTwoInput *UserInput) {
+	fmt.Println("[[ BATTLE ]] Starting a battle")
+
+	for {
+		// get player input
+		msgs := WholeTurn(userOneInput, userTwoInput)
+		for _, x := range msgs[0] {
+			fmt.Println(x)
+		}
+		for _, y := range msgs[1] {
+			fmt.Println(y)
+		}
+
+		if IsLoser(userOneInput.team) || IsLoser(userTwoInput.team) {
+			break
+		}
+	}
+}
+
+

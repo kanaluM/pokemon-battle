@@ -1,26 +1,25 @@
 package main
 
+import "math/rand"
 
 // does math calculation for a pokemon's real HP stat
-func CalculateHp(pokemon &Pokemon, iv int, ev int) (int) {
-    return (((2 * pokemon.baseHp) + iv + (ev / 4)) 
-           * pokemon.level) / 100 + pokemon.lvl + 10
+func calculateHp(pokemon *Pokemon, iv int, ev int) (int) {
+    return (((2 * pokemon.baseHp) + iv + (ev / 4)) * pokemon.level) / 100 + pokemon.level + 10
 }
 
 
 // does math calculation for a pokemon's real HP stat
-func CalculateOtherStat(pokemon &Pokemon, iv int, ev int, baseStat int) (int) {
-    return (((2 * baseStat) + iv + (ev / 4)) 
-           * pokemon.level) / 100 + 5
+func calculateOtherStat(pokemon *Pokemon, iv int, ev int, baseStat int) (int) {
+    return (((2 * baseStat) + iv + (ev / 4)) * pokemon.level) / 100 + 5
 }
 
 
 // stat calculator
 // takes a pokemon and a bool indicating whether to make it strong or not
 // and fills in that pokemon's actual stats (based on base stats, IVs, etc) 
-func InitializeStats(pokemon &Pokemon, makeStrong bool) {
+func initializeStats(pokemon *Pokemon, makeStrong bool) {
     if makeStrong {   // cynthia AI will get stronger pokemon
-        pokemon.lvl = 60
+        pokemon.level = 60
         IV := 31
         EV := 252
         pokemon.hp = calculateHp(pokemon, IV, EV)
@@ -30,7 +29,7 @@ func InitializeStats(pokemon &Pokemon, makeStrong bool) {
         pokemon.spdef = calculateOtherStat(pokemon, IV, EV, pokemon.baseSpdef)
         pokemon.speed = calculateOtherStat(pokemon, IV, EV, pokemon.baseSpeed)
     } else {   // player gets slightly weaker pokemon
-        pokemon.lvl = rand.Intn(10)+50
+        pokemon.level = rand.Intn(10)+50
         pokemon.hp = calculateHp(pokemon, rand.Intn(20)+10, rand.Intn(100)+120)
         pokemon.atk = calculateOtherStat(pokemon, rand.Intn(20)+10, rand.Intn(100)+120, pokemon.baseAtk)
         pokemon.def = calculateOtherStat(pokemon, rand.Intn(20)+10, rand.Intn(100)+120, pokemon.baseDef)
@@ -43,9 +42,9 @@ func InitializeStats(pokemon &Pokemon, makeStrong bool) {
 
 // new pokemon constructor
 // didn't want to use packages so it is very raw
-func newPokemon(name string, makeStrong bool) (&Pokemon) {
-	template := &PokemonList[name]
-	pokemon := &Pokemon{}
+func NewPokemon(name string, makeStrong bool) *Pokemon {
+	template := PokemonList[name]
+	pokemon := Pokemon{}
 
 	// shared among individuals
     pokemon.name = template.name
@@ -61,12 +60,12 @@ func newPokemon(name string, makeStrong bool) (&Pokemon) {
     pokemon.moves = template.moves
 
     // level and all stats handled by helper
-    InitializeStats(pokemon, makeStrong)
+    initializeStats(&pokemon, makeStrong)
 
 	// remaining battle specific fields
     pokemon.nonVolatileStatus = ""
     pokemon.volatileStatus = ""
     pokemon.fainted = false
 
-	return pokemon
+	return &pokemon
 }

@@ -1,22 +1,15 @@
 package main
 
 import (
-	"fmt"
+	// "fmt"
 )
 
 func main() {
-	attacker := newPokemon("Torterra", false)
-	defender := newPokemon("Garchomp", false)
-	fmt.Println(attacker.name + " vs. " + defender.name)
+	cynthia := []*Pokemon{NewPokemon("Spiritomb", false)}
+	player := []*Pokemon{NewPokemon("Torterra", false)}
 
-	userOneInput := UserInput{"attack", attacker, ""}
-	userTwoInput := UserInput{"attack", attacker, ""}
+	userOneInput := &UserInput{"attack", cynthia[0], cynthia, ""}
+	userTwoInput := &UserInput{"attack", player[0], player, ""}
 
-	msgs := WholeTurn(userOneInput &UserInput,userTwoInput &UserInput)
-	for x := range msgs[0] {
-		fmt.Println(x)
-	}
-	for y := range msgs[1] {
-		fmt.Println(y)
-	}
+	Battle(userOneInput, userTwoInput)
 }
