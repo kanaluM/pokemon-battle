@@ -190,4 +190,6 @@ type UserInput struct {
     activePokemon *Pokemon
     team []*Pokemon
     move string
+    isAI bool
+    gameOver bool
 }

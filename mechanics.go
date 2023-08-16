@@ -36,14 +36,11 @@ func TypeMatch(mv *Move, target *Pokemon) (float64, string) {
 // turn order function
 // takes in a list of pokemon in battle and returns
 // a list of those pokemon ordered by speed (fast -> slow)
-func TurnOrder(pkmnList [2]*Pokemon) ([2]*Pokemon) {
-    if pkmnList[0].speed < pkmnList[1].speed {
-        slow := pkmnList[0]
-        pkmnList[0] = pkmnList[1]
-        pkmnList[1] = slow
+func TurnOrder(input1 *UserInput, input2 *UserInput) (*UserInput, *UserInput) {
+    if input1.activePokemon.speed < input2.activePokemon.speed {
+        return input2, input1
     } 
-
-    return pkmnList
+    return input1, input2
 }
 
 

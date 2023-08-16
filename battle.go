@@ -3,12 +3,14 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"time"
+	"strconv"
 )
 
 // the turn function for player
 // returns a list of messages
 // checks for status hindrance, accuracy
-func UserTurnAttack(attacker *Pokemon, defender *Pokemon, move *Move) ([]string) {
+func AttackTurn(attacker *Pokemon, defender *Pokemon, move *Move) ([]string) {
 
 	// check for volatile status
 	canAttack, msg := CanAttackWithVolatileStatus(attacker) 
@@ -42,6 +44,7 @@ func UserTurnAttack(attacker *Pokemon, defender *Pokemon, move *Move) ([]string)
 		messages = append(messages, defender.name + " fainted!")
 	} else {   // target survives
 		defender.hp -= damage
+		messages = append(messages, defender.name + " has " + strconv.Itoa(defender.hp) + " hp left")
 	}
             
 	// apply statuses
@@ -58,61 +61,39 @@ func UserTurnAttack(attacker *Pokemon, defender *Pokemon, move *Move) ([]string)
 }
 
 
-// the turn function for AI opponent
-// returns a list of messages
-// checks for status hindrance, accuracy
-func AITurnAttack(attacker *Pokemon, defender *Pokemon) ([]string) {
-
-	// AI chooses the move with the highest damage
-	damage := 0
-	var chosenMove *Move
-	for _, mv := range attacker.moves {
-		move := MoveList[mv]
-		dmg, _ := DamageCalc(attacker, defender, &move)
-		if dmg > damage {
-			damage = dmg
-			chosenMove = &move
-		}
-	}
-
-	// same workflow as a user attacking
-	return UserTurnAttack(attacker, defender, chosenMove)
-}
-
-
 // after each turn, check all pokemon on field for status effects and apply damage
-func PostTurnStatusEffects(pokemonInPlay [2]*Pokemon) ([]string) {
-	pokemonInPlay = TurnOrder(pokemonInPlay)
-	var messages []string
+// func PostTurnStatusEffects(pokemonInPlay [2]*Pokemon) ([]string) {
+// 	pokemonInPlay = TurnOrder(pokemonInPlay)
+// 	var messages []string
 
-	// check each pokemon for volatile status effects
-	for _, pokemon := range pokemonInPlay {
+// 	// check each pokemon for volatile status effects
+// 	for _, pokemon := range pokemonInPlay {
 
-		// check for residual status damage
-		damage := 0
-		switch pokemon.volatileStatus {
-			case "BRN": 
-				messages = append(messages, pokemon.name + " was hurt by burn")
-				damage = 8
-			case "PSN": 
-				messages = append(messages, pokemon.name + " was hurt by poison")
-				damage = 16
-			default:
-				continue
-		}
+// 		// check for residual status damage
+// 		damage := 0
+// 		switch pokemon.volatileStatus {
+// 			case "BRN": 
+// 				messages = append(messages, pokemon.name + " was hurt by burn")
+// 				damage = 8
+// 			case "PSN": 
+// 				messages = append(messages, pokemon.name + " was hurt by poison")
+// 				damage = 16
+// 			default:
+// 				continue
+// 		}
 
-		// apply damage to target if needed
-		if pokemon.hp <= damage {   // target faints
-			pokemon.hp = 0
-			pokemon.fainted = true
-			messages = append(messages, pokemon.name + " fainted!")
-		} else {   // target survives
-			pokemon.hp -= damage
-		}
-	}
+// 		// apply damage to target if needed
+// 		if pokemon.hp <= damage {   // target faints
+// 			pokemon.hp = 0
+// 			pokemon.fainted = true
+// 			messages = append(messages, pokemon.name + " fainted!")
+// 		} else {   // target survives
+// 			pokemon.hp -= damage
+// 		}
+// 	}
 
-	return messages
-}
+// 	return messages
+// }
 
 
 // simple message for win or loss
@@ -137,41 +118,83 @@ func PostBattleMessage(winMessages []string, loseMessages []string, wonBattle bo
 
 // wrapper function for everything that happens in one turn
 // returns a bunch of messages for each player
-func WholeTurn(userOneInput *UserInput, userTwoInput *UserInput) [2][]string {
+func WholeTurn(userOneInput *UserInput, userTwoInput *UserInput) ([2][]string, bool) {
 
 	var msgs [2][]string
+	var msg []string
 
 	// turn order
-	pkmn1 := userOneInput.activePokemon
-	pkmn2 := userTwoInput.activePokemon
-	pkmnList := [2]*Pokemon{pkmn1, pkmn2}
-	pkmnList = TurnOrder(pkmnList)
+	userOneInput, userTwoInput = TurnOrder(userOneInput, userTwoInput)
+	// fmt.Println(userOneInput.activePokemon.name, userOneInput.activePokemon.speed)
+	// fmt.Println(userTwoInput.activePokemon.name, userTwoInput.activePokemon.speed)
 
 	// player 1 attacks
 	// TODO cannot flinch when moving first (probably should be refactored in future)
-	if pkmn1.nonVolatileStatus == "flinch" { pkmn1.nonVolatileStatus = "" }
-	msg := AITurnAttack(pkmn1, pkmn2)
+	if userOneInput.activePokemon.nonVolatileStatus == "flinch" { 
+		userOneInput.activePokemon.nonVolatileStatus = "" 
+	}
+
+	// faster user attacks or switches (AI only attacks)
+	if userOneInput.isAI {
+		userOneInput = ChooseMoveAI(userOneInput, userTwoInput)
+		move := MoveList[userOneInput.move]
+		msg = AttackTurn(userOneInput.activePokemon, userTwoInput.activePokemon, &move)
+	} else {
+		userOneInput = ChooseAction(userOneInput)
+		if userOneInput.action == "attack" {
+			move := MoveList[userOneInput.move]
+			msg = AttackTurn(userOneInput.activePokemon, userTwoInput.activePokemon, &move)
+		}
+	}
 	msgs[0] = msg
 
-	// check if player 2 is still alive
-	if pkmn2.fainted {
-		// switch
+	// check if slower user has not fainted
+	// if it has, then send out a new Pokemon
+	if userTwoInput.activePokemon.fainted {
+		if userTwoInput.isAI {
+			userTwoInput = ReplaceFaintedPokemonAI(userTwoInput, userOneInput)
+		} else {
+			userTwoInput = ReplaceFaintedPokemon(userTwoInput)
+		}
+		if userTwoInput.gameOver {
+			msgs[0] = append(msgs[0], "Someone is out of usable Pokemon...", "Someone whited out!") 
+			return msgs, true
+		}
 	}
 
-	// player 2 attacks
-	msg = AITurnAttack(pkmn2, pkmn1)
+	// slower user attacks or switches (AI only attacks)
+	if userTwoInput.isAI {
+		userTwoInput = ChooseMoveAI(userTwoInput, userOneInput)
+		move := MoveList[userTwoInput.move]
+		msg = AttackTurn(userTwoInput.activePokemon, userOneInput.activePokemon, &move)
+	} else {
+		userTwoInput = ChooseAction(userTwoInput)
+		if userTwoInput.action == "attack" {
+			move := MoveList[userTwoInput.move]
+			msg = AttackTurn(userTwoInput.activePokemon, userOneInput.activePokemon, &move)
+		}
+	}
 	msgs[1] = msg
 
-	// check if player 1 is still alive
-	if pkmn1.fainted {
-		// switch
+	// check if faster user has not fainted
+	// if it has, then send out a new Pokemon
+	if userOneInput.activePokemon.fainted {
+		if userOneInput.isAI {
+			userTwoInput = ReplaceFaintedPokemonAI(userOneInput, userTwoInput)
+		} else {
+			userOneInput = ReplaceFaintedPokemon(userOneInput)
+		}
+		if userOneInput.gameOver {
+			msgs[1] = append(msgs[1], "Someone is out of usable Pokemon...", "Someone whited out!") 
+			return msgs, true
+		}
 	}
-
-	return msgs
+	return msgs, false
 }
 
 
 // returns true if all pokemon on team are fainted
+// may not be needed
 func IsLoser(team []*Pokemon) bool {
 	for _, p := range team {
 		if !p.fainted {
@@ -183,19 +206,23 @@ func IsLoser(team []*Pokemon) bool {
 
 // wrapper function for a whole 6v6 singles battle
 func Battle(userOneInput *UserInput, userTwoInput *UserInput) {
-	fmt.Println("[[ BATTLE ]] Starting a battle")
+	fmt.Println("[[ BATTLE ]] Starting a battle\n")
 
+	var msgs [2][]string
+	var gameOver bool
 	for {
-		// get player input
-		msgs := WholeTurn(userOneInput, userTwoInput)
+		msgs, gameOver = WholeTurn(userOneInput, userTwoInput)
 		for _, x := range msgs[0] {
 			fmt.Println(x)
+			time.Sleep(1 * time.Second)
 		}
+		fmt.Println()
 		for _, y := range msgs[1] {
 			fmt.Println(y)
+			time.Sleep(1 * time.Second)
 		}
-
-		if IsLoser(userOneInput.team) || IsLoser(userTwoInput.team) {
+		fmt.Println()
+		if gameOver {
 			break
 		}
 	}

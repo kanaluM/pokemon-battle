@@ -5,11 +5,25 @@ import (
 )
 
 func main() {
-	cynthia := []*Pokemon{NewPokemon("Spiritomb", false)}
-	player := []*Pokemon{NewPokemon("Torterra", false)}
+	empoleon := NewPokemon("Empoleon", false)
+	torterra := NewPokemon("Torterra", false)
+	infernape := NewPokemon("Infernape", false)
+	staraptor := NewPokemon("Staraptor", false)
+	luxray := NewPokemon("Luxray", false)
+	machamp := NewPokemon("Machamp", false)
+	
+	spiritomb := NewPokemon("Spiritomb", true)
+	lucario := NewPokemon("Lucario", true)
+	togekiss := NewPokemon("Togekiss", true)
+	roserade := NewPokemon("Roserade", true)
+	milotic := NewPokemon("Milotic", true)
+	garchomp := NewPokemon("Garchomp", true)
 
-	userOneInput := &UserInput{"attack", cynthia[0], cynthia, ""}
-	userTwoInput := &UserInput{"attack", player[0], player, ""}
+	myTeam := []*Pokemon{empoleon, torterra, infernape, staraptor, luxray, machamp}
+	cynthiasTeam := []*Pokemon{spiritomb, lucario, togekiss, roserade, milotic, garchomp}
 
-	Battle(userOneInput, userTwoInput)
+	myInput := &UserInput{"", empoleon, myTeam, "", false, false}
+	cynthiasInput := &UserInput{"", spiritomb, cynthiasTeam, "", true, false}
+
+	Battle(myInput, cynthiasInput)
 }
