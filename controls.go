@@ -5,6 +5,7 @@ import (
 	"strconv"
 )
 
+// gets user stdin to decide whether to attack or switch
 func ChooseAction(input *UserInput) *UserInput {
 	fmt.Println("Type a number and hit ENTR to choose an action:")
 	fmt.Println("(1) Fight")
@@ -16,19 +17,18 @@ func ChooseAction(input *UserInput) *UserInput {
 	canContinue := true
 	for canContinue {
 		fmt.Scanln(&mv)
+		fmt.Println()
 		switch mv {
 			case "1":
 				canContinue = false
-				fmt.Println()
 			case "2":
 				canContinue = false
-				fmt.Println()
 			case "3":
-				fmt.Println("Your bag is empty")
+				fmt.Println("Your bag is empty, try again\n")
 			case "4":
-				fmt.Println("Only cowards run away")
+				fmt.Println("Only cowards run away, try again\n")
 			default:
-				fmt.Println("[[ INVALID INPUT ]] Try again")
+				fmt.Println("[[ INVALID INPUT ]] Try again\n")
 		}
 	}
 	action, _ := strconv.Atoi(mv)
@@ -37,13 +37,11 @@ func ChooseAction(input *UserInput) *UserInput {
 		case 1: 
 			input.action = "attack"
 			res = ChooseMove(input)
-			fmt.Println()
 		case 2:
 			input.action = "switch"
 			res = SwitchPokemon(input)
-			fmt.Println()
 		default:
-			fmt.Println("huh")
+			fmt.Println("[[ SOMETHING UNEXPECTED OCCURRED (controls.go:line 43) ]]")
 	}
 	return res
 }
@@ -59,8 +57,9 @@ func ChooseMove(input *UserInput) *UserInput {
 	var mv string
 	for {
 		fmt.Scanln(&mv)
+		fmt.Println()
 		if (mv == "1") || (mv == "2") || (mv == "3") || (mv == "4") { break } 
-		fmt.Println("[[ INVALID INPUT ]] Try again")
+		fmt.Println("[[ INVALID INPUT ]] Try again\n")
 	}
 	moveIdx, _ := strconv.Atoi(mv)
 	// fmt.Println(pokemon.name, "used", pokemon.moves[moveIdx-1])
@@ -76,10 +75,8 @@ func ReplaceFaintedPokemon(input *UserInput) *UserInput {
 	for i := 0; i < len(team); i++ {
 		if !team[i].fainted {
 			nonFaintedPokemon = append(nonFaintedPokemon, team[i])
-			fmt.Printf("(%v) %v\n", len(nonFaintedPokemon), team[i].name)
 		}
 	}
-	fmt.Println()
 
 	// Are there more pokemon to fight?
 	if len(nonFaintedPokemon) == 0 {
@@ -88,6 +85,9 @@ func ReplaceFaintedPokemon(input *UserInput) *UserInput {
 	}
 
 	fmt.Println("Type a number and hit ENTR to choose a pokemon:")
+	for i := 0; i < len(nonFaintedPokemon); i++ {
+		fmt.Printf("(%v) %v\n", i+1, nonFaintedPokemon[i].name)
+	}
 	var mv string
 	var res int
 	for {
@@ -99,7 +99,7 @@ func ReplaceFaintedPokemon(input *UserInput) *UserInput {
 		}
 		fmt.Println("[[ INVALID INPUT ]] Try again")
 	}
-	fmt.Println("\n[[", input.username, "]]", "Go", nonFaintedPokemon[res].name)
+	fmt.Println("[[", input.username, "]]", "Go", nonFaintedPokemon[res].name, "\n")
 	input.activePokemon = nonFaintedPokemon[res]
 	return input
 }
@@ -123,18 +123,20 @@ func SwitchPokemon(input *UserInput) *UserInput {
 	var res int
 	for {
 		fmt.Scanln(&mv)
+		fmt.Println()
 		pokemonIdx, err := strconv.Atoi(mv)
 		if err == nil && (0 <= pokemonIdx) && (pokemonIdx < len(nonFaintedPokemon)+1) { 
 			res = pokemonIdx-1
+			if res == -1 {
+				input = ChooseAction(input)
+				return input
+			}
 			break 
 		}
 		fmt.Println("[[ INVALID INPUT ]] Try again")
 	}
-	if res == -1 {
-		return input
-	}
-	fmt.Println("\n[[", input.username, "]]", "Come back", activePokemon.name)
-	fmt.Println("\n[[", input.username, "]]", "Go", nonFaintedPokemon[res].name)
+	fmt.Println("[[", input.username, "]]", "Come back", activePokemon.name)
+	fmt.Println("[[", input.username, "]]", "Go", nonFaintedPokemon[res].name, "\n")
 	input.activePokemon = nonFaintedPokemon[res]
 	return input
 }

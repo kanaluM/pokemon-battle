@@ -53,7 +53,7 @@ func ReplaceFaintedPokemonAI(aiInput *UserInput, userInput *UserInput) *UserInpu
 	if chosenPokemon == nil {
 		aiInput.gameOver = true
 	} else {
-		fmt.Println("\n[[", aiInput.username, "]] Go", chosenPokemon.name)
+		fmt.Println("[[", aiInput.username, "]] Go", chosenPokemon.name, "\n")
 		aiInput.activePokemon = chosenPokemon
 	}
 	return aiInput
