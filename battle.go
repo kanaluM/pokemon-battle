@@ -123,28 +123,36 @@ func WholeTurn(userOneInput *UserInput, userTwoInput *UserInput) ([2][]string, b
 	var msgs [2][]string
 	var msg []string
 
-	fmt.Println("[[ NEEEEEEEEEEW TUUUUUUUUUUUURN ]]\n")
+	fmt.Println("[[ NEW TURN ]] What will you do?\n")
 
 	// turn order
 	userOneInput, userTwoInput = TurnOrder(userOneInput, userTwoInput)
 
-	// player 1 attacks
 	// TODO cannot flinch when moving first (probably should be refactored in future)
 	if userOneInput.activePokemon.nonVolatileStatus == "flinch" { 
 		userOneInput.activePokemon.nonVolatileStatus = "" 
 	}
 
+	// We want to collect the input from both users before anything happens in the turn
 	// faster user attacks or switches (AI only attacks)
 	if userOneInput.isAI {
-		userOneInput = ChooseMoveAI(userOneInput, userTwoInput)
-		move := MoveList[userOneInput.move]
-		msg = AttackTurn(userOneInput.activePokemon, userTwoInput.activePokemon, &move)
+		userOneInput = ChooseActionAI(userOneInput, userTwoInput)
 	} else {
 		userOneInput = ChooseAction(userOneInput)
-		if userOneInput.action == "attack" {
-			move := MoveList[userOneInput.move]
-			msg = AttackTurn(userOneInput.activePokemon, userTwoInput.activePokemon, &move)
-		}
+	}
+
+	// slower user attacks or switches (AI only attacks)
+	if userTwoInput.isAI {
+		userTwoInput = ChooseActionAI(userTwoInput, userOneInput)
+	} else {
+		userTwoInput = ChooseAction(userTwoInput)
+	}
+
+	// After collecting the input from both players, the turn can proceed
+	// Start with faster pokemon attacking (or switching)
+	if userOneInput.action == "attack" {
+		move := MoveList[userOneInput.move]
+		msg = AttackTurn(userOneInput.activePokemon, userTwoInput.activePokemon, &move)
 	}
 	for _, x := range msg {
 		fmt.Println(x)
@@ -156,7 +164,6 @@ func WholeTurn(userOneInput *UserInput, userTwoInput *UserInput) ([2][]string, b
 	// check if slower user has not fainted
 	// if it has, then send out a new Pokemon
 	if userTwoInput.activePokemon.fainted {
-		fmt.Println("we are over here")
 		if userTwoInput.isAI {
 			userTwoInput = ReplaceFaintedPokemonAI(userTwoInput, userOneInput)
 		} else {
@@ -174,29 +181,20 @@ func WholeTurn(userOneInput *UserInput, userTwoInput *UserInput) ([2][]string, b
 		}
 	}
 
-	// slower user attacks or switches (AI only attacks)
-	if userTwoInput.isAI {
-		userTwoInput = ChooseMoveAI(userTwoInput, userOneInput)
+	// slower pokemon can attack (or switch)
+	if userTwoInput.action == "attack" {
 		move := MoveList[userTwoInput.move]
 		msg = AttackTurn(userTwoInput.activePokemon, userOneInput.activePokemon, &move)
-	} else {
-		userTwoInput = ChooseAction(userTwoInput)
-		if userTwoInput.action == "attack" {
-			move := MoveList[userTwoInput.move]
-			msg = AttackTurn(userTwoInput.activePokemon, userOneInput.activePokemon, &move)
-		}
 	}
 	for _, x := range msg {
 		fmt.Println(x)
 		time.Sleep(1 * time.Second)
 	}
-	fmt.Println()
 	msgs[1] = msg
 
 	// check if faster user has not fainted
 	// if it has, then send out a new Pokemon
 	if userOneInput.activePokemon.fainted {
-		fmt.Println("we are here")
 		if userOneInput.isAI {
 			userOneInput = ReplaceFaintedPokemonAI(userOneInput, userTwoInput)
 		} else {
