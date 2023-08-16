@@ -92,21 +92,13 @@ func AttackTurn(attacker *Pokemon, defender *Pokemon, move *Move) ([]string) {
 // 	return messages
 // }
 
-// simple message for win or loss
-func BattleOutcomeMessage(wonBattle bool) (string) {
-	if wonBattle {
-		return "You defeated Cynthia!"
-	} else {
-		return "You lost to Cynthia..."
-	}
-}
-
 // returns a more complex message based on the outcome of the battle
-func PostBattleMessage(winMessages []string, loseMessages []string, wonBattle bool) (string) {
-	if wonBattle {
-		return winMessages[rand.Intn(len(winMessages))]
-	} else {
-		return loseMessages[rand.Intn(len(loseMessages))]
+func PostBattleMessage(winner *UserInput, loser *UserInput, wonBattle bool) {
+	fmt.Println(winner.username, "defeated", loser.username)
+	if wonBattle {   // you won the battle
+		fmt.Println(WinMessages[rand.Intn(len(WinMessages))], "\n")
+	} else {        // you lost the battle
+		fmt.Println(LoseMessages[rand.Intn(len(LoseMessages))], "\n")
 	}
 }
 
@@ -182,7 +174,7 @@ func WholeTurn(userOneInput *UserInput, userTwoInput *UserInput) bool {
 	// slower pokemon does not get a turn if fainted
 	if userTwoInput.gameOver { 
 		fmt.Println(userTwoInput.username, "is out of usable Pokemon...")
-		fmt.Println(userTwoInput.username, "whited out!") 
+		fmt.Println(userTwoInput.username, "whited out!\n") 
 		return true
 	} else if !canAttack {
 		return false
@@ -193,7 +185,7 @@ func WholeTurn(userOneInput *UserInput, userTwoInput *UserInput) bool {
 	
 	if userOneInput.gameOver {
 		fmt.Println(userOneInput.username, "is out of usable Pokemon...")
-		fmt.Println(userOneInput.username, "whited out!") 
+		fmt.Println(userOneInput.username, "whited out!\n") 
 		return true
 	} 
 	return false
@@ -210,6 +202,11 @@ func Battle(userOneInput *UserInput, userTwoInput *UserInput) {
 	for {
 		gameOver = WholeTurn(userOneInput, userTwoInput)
 		if gameOver {
+			if userOneInput.gameOver {
+				PostBattleMessage(userTwoInput, userOneInput, false)
+			} else {
+				PostBattleMessage(userOneInput, userTwoInput, true)
+			}
 			break
 		}
 	}
