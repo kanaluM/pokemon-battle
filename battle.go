@@ -39,9 +39,11 @@ func AttackTurn(attacker *Pokemon, defender *Pokemon, move *Move) ([]string) {
 
 	// apply damage to target
 	if defender.hp <= damage {   // target faints
+		messages = append(messages, defender.name + " lost " + strconv.Itoa(defender.hp) + " health")
 		defender.hp = 0
 		defender.fainted = true
 		messages = append(messages, defender.name + " fainted!")
+		return messages
 	} else {   // target survives
 		defender.hp -= damage
 		messages = append(messages, defender.name + " lost " + strconv.Itoa(damage) + " health (" + strconv.Itoa(defender.hp) + " hp left)")
@@ -60,41 +62,35 @@ func AttackTurn(attacker *Pokemon, defender *Pokemon, move *Move) ([]string) {
 	return messages
 }
 
-
-// after each turn, check all pokemon on field for status effects and apply damage
-// func PostTurnStatusEffects(pokemonInPlay [2]*Pokemon) ([]string) {
-// 	pokemonInPlay = TurnOrder(pokemonInPlay)
+// after each turn, check a pokemon on field for status effects and apply damage
+// func PostTurnStatusEffects(input *UserInput) ([]string) {
 // 	var messages []string
+// 	pokemon := input.activePokemon
 
-// 	// check each pokemon for volatile status effects
-// 	for _, pokemon := range pokemonInPlay {
+// 	// check for residual status damage
+// 	damage := 0
+// 	switch pokemon.volatileStatus {
+// 		case "BRN": 
+// 			messages = append(messages, pokemon.name + " was hurt by burn")
+// 			damage = 8
+// 		case "PSN": 
+// 			messages = append(messages, pokemon.name + " was hurt by poison")
+// 			damage = 16
+// 		default:
+// 			continue
+// 	}
 
-// 		// check for residual status damage
-// 		damage := 0
-// 		switch pokemon.volatileStatus {
-// 			case "BRN": 
-// 				messages = append(messages, pokemon.name + " was hurt by burn")
-// 				damage = 8
-// 			case "PSN": 
-// 				messages = append(messages, pokemon.name + " was hurt by poison")
-// 				damage = 16
-// 			default:
-// 				continue
-// 		}
-
-// 		// apply damage to target if needed
-// 		if pokemon.hp <= damage {   // target faints
-// 			pokemon.hp = 0
-// 			pokemon.fainted = true
-// 			messages = append(messages, pokemon.name + " fainted!")
-// 		} else {   // target survives
-// 			pokemon.hp -= damage
-// 		}
+// 	// apply damage to target if needed
+// 	if pokemon.hp <= damage {   // target faints
+// 		pokemon.hp = 0
+// 		pokemon.fainted = true
+// 		messages = append(messages, pokemon.name + " fainted!")
+// 	} else {   // target survives
+// 		pokemon.hp -= damage
 // 	}
 
 // 	return messages
 // }
-
 
 // simple message for win or loss
 func BattleOutcomeMessage(wonBattle bool) (string) {
@@ -105,7 +101,6 @@ func BattleOutcomeMessage(wonBattle bool) (string) {
 	}
 }
 
-
 // returns a more complex message based on the outcome of the battle
 func PostBattleMessage(winMessages []string, loseMessages []string, wonBattle bool) (string) {
 	if wonBattle {
@@ -115,13 +110,45 @@ func PostBattleMessage(winMessages []string, loseMessages []string, wonBattle bo
 	}
 }
 
+// Printing helper function
+func PrintMessages(msgs []string) {
+	if len(msgs) == 0 {
+		return
+	}
+	for _, x := range msgs {
+		fmt.Println(x)
+		time.Sleep(1 * time.Second)
+	}
+	fmt.Println()
+}
+
+// runs a user's input after it has been collected for the turn
+func HalfTurn(attackerInput *UserInput, defenderInput *UserInput) (*UserInput, *UserInput, bool) {
+	var msg []string
+	if attackerInput.action == "attack" {
+		move := MoveList[attackerInput.move]
+		msg = AttackTurn(attackerInput.activePokemon, defenderInput.activePokemon, &move)
+	}
+	PrintMessages(msg)
+
+	// if defender faints, then send out a new Pokemon
+	defenderLives := true
+	if defenderInput.activePokemon.fainted {
+		defenderLives= false
+		if defenderInput.isAI {
+			defenderInput = ReplaceFaintedPokemonAI(defenderInput, attackerInput)
+		} else {
+			defenderInput = ReplaceFaintedPokemon(defenderInput)
+		}
+	}
+	return attackerInput, defenderInput, defenderLives
+}
 
 // wrapper function for everything that happens in one turn
 // returns a bunch of messages for each player
-func WholeTurn(userOneInput *UserInput, userTwoInput *UserInput) ([2][]string, bool) {
+func WholeTurn(userOneInput *UserInput, userTwoInput *UserInput) bool {
 
-	var msgs [2][]string
-	var msg []string
+	var canAttack bool
 
 	fmt.Println("[[ NEW TURN ]] What will you do?\n")
 
@@ -150,76 +177,26 @@ func WholeTurn(userOneInput *UserInput, userTwoInput *UserInput) ([2][]string, b
 
 	// After collecting the input from both players, the turn can proceed
 	// Start with faster pokemon attacking (or switching)
-	if userOneInput.action == "attack" {
-		move := MoveList[userOneInput.move]
-		msg = AttackTurn(userOneInput.activePokemon, userTwoInput.activePokemon, &move)
-	}
-	for _, x := range msg {
-		fmt.Println(x)
-		time.Sleep(1 * time.Second)
-	}
-	fmt.Println()
-	msgs[0] = msg
+	userOneInput, userTwoInput, canAttack = HalfTurn(userOneInput, userTwoInput)
 
-	// check if slower user has not fainted
-	// if it has, then send out a new Pokemon
-	if userTwoInput.activePokemon.fainted {
-		if userTwoInput.isAI {
-			userTwoInput = ReplaceFaintedPokemonAI(userTwoInput, userOneInput)
-		} else {
-			userTwoInput = ReplaceFaintedPokemon(userTwoInput)
-		}
-
-		// slower pokemon does not get a turn if fainted
-		if userTwoInput.gameOver {
-			// msgs[0] = append(msgs[0], userTwoInput.username + " is out of usable Pokemon...", userTwoInput.username + " whited out!") 
-			fmt.Println(userTwoInput.username, "is out of usable Pokemon...")
-			fmt.Println(userTwoInput.username, "whited out!") 
-			return msgs, true
-		} else {
-			return msgs, false
-		}
+	// slower pokemon does not get a turn if fainted
+	if userTwoInput.gameOver { 
+		fmt.Println(userTwoInput.username, "is out of usable Pokemon...")
+		fmt.Println(userTwoInput.username, "whited out!") 
+		return true
+	} else if !canAttack {
+		return false
 	}
-
+	
 	// slower pokemon can attack (or switch)
-	if userTwoInput.action == "attack" {
-		move := MoveList[userTwoInput.move]
-		msg = AttackTurn(userTwoInput.activePokemon, userOneInput.activePokemon, &move)
-	}
-	for _, x := range msg {
-		fmt.Println(x)
-		time.Sleep(1 * time.Second)
-	}
-	msgs[1] = msg
-
-	// check if faster user has not fainted
-	// if it has, then send out a new Pokemon
-	if userOneInput.activePokemon.fainted {
-		if userOneInput.isAI {
-			userOneInput = ReplaceFaintedPokemonAI(userOneInput, userTwoInput)
-		} else {
-			userOneInput = ReplaceFaintedPokemon(userOneInput)
-		}
-		if userOneInput.gameOver {
-			// msgs[1] = append(msgs[1], userOneInput.username + " is out of usable Pokemon...", userOneInput.username + " whited out!") 
-			fmt.Println(userOneInput.username, "is out of usable Pokemon...")
-			fmt.Println(userOneInput.username, "whited out!") 
-			return msgs, true
-		}
-	}
-	return msgs, false
-}
-
-
-// returns true if all pokemon on team are fainted
-// may not be needed
-func IsLoser(team []*Pokemon) bool {
-	for _, p := range team {
-		if !p.fainted {
-			return false
-		}
-	}
-	return true
+	userTwoInput, userOneInput, _ = HalfTurn(userTwoInput, userOneInput)
+	
+	if userOneInput.gameOver {
+		fmt.Println(userOneInput.username, "is out of usable Pokemon...")
+		fmt.Println(userOneInput.username, "whited out!") 
+		return true
+	} 
+	return false
 }
 
 // wrapper function for a whole 6v6 singles battle
@@ -231,17 +208,7 @@ func Battle(userOneInput *UserInput, userTwoInput *UserInput) {
 	// var msgs [2][]string
 	var gameOver bool
 	for {
-		_, gameOver = WholeTurn(userOneInput, userTwoInput)
-		// for _, x := range msgs[0] {
-		// 	fmt.Println(x)
-		// 	time.Sleep(1 * time.Second)
-		// }
-		// fmt.Println()
-		// for _, y := range msgs[1] {
-		// 	fmt.Println(y)
-		// 	time.Sleep(1 * time.Second)
-		// }
-		fmt.Println()
+		gameOver = WholeTurn(userOneInput, userTwoInput)
 		if gameOver {
 			break
 		}
