@@ -72,7 +72,6 @@ func ChooseMove(input *UserInput) *UserInput {
 // (after previous one has fainted)
 func ReplaceFaintedPokemon(input *UserInput) *UserInput {
 	team := input.team
-	fmt.Println("Type a number and hit ENTR to choose a pokemon:")
 	var nonFaintedPokemon []*Pokemon
 	for i := 0; i < len(team); i++ {
 		if !team[i].fainted {
@@ -88,6 +87,7 @@ func ReplaceFaintedPokemon(input *UserInput) *UserInput {
 		return input
 	}
 
+	fmt.Println("Type a number and hit ENTR to choose a pokemon:")
 	var mv string
 	var res int
 	for {

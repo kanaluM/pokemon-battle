@@ -4,6 +4,13 @@ import (
 	"fmt"
 )
 
+// Handles AI choosing an action (only attack for now)
+func ChooseActionAI(aiInput *UserInput, userInput *UserInput) *UserInput {
+	aiInput.action = "attack"
+	aiInput = ChooseMoveAI(aiInput, userInput)
+	return aiInput
+}
+
 // Handles AI choosing a move
 func ChooseMoveAI(aiInput *UserInput, userInput *UserInput) *UserInput {
 	// AI chooses the move with the highest damage
