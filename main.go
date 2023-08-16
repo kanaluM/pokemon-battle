@@ -5,12 +5,13 @@ import (
 )
 
 func main() {
-	empoleon := NewPokemon("Empoleon", false)
-	torterra := NewPokemon("Torterra", false)
-	infernape := NewPokemon("Infernape", false)
-	staraptor := NewPokemon("Staraptor", false)
-	luxray := NewPokemon("Luxray", false)
-	machamp := NewPokemon("Machamp", false)
+	missingno := NewPokemon("MissingNo", true)
+	// empoleon := NewPokemon("Empoleon", true)
+	torterra := NewPokemon("Torterra", true)
+	infernape := NewPokemon("Infernape", true)
+	staraptor := NewPokemon("Staraptor", true)
+	luxray := NewPokemon("Luxray", true)
+	machamp := NewPokemon("Machamp", true)
 	
 	spiritomb := NewPokemon("Spiritomb", true)
 	lucario := NewPokemon("Lucario", true)
@@ -19,7 +20,7 @@ func main() {
 	milotic := NewPokemon("Milotic", true)
 	garchomp := NewPokemon("Garchomp", true)
 
-	myTeam := []*Pokemon{empoleon, torterra, infernape, staraptor, luxray, machamp}
+	myTeam := []*Pokemon{missingno, torterra, infernape, staraptor, luxray, machamp}
 	cynthiasTeam := []*Pokemon{spiritomb, lucario, togekiss, roserade, milotic, garchomp}
 
 	// type UserInput struct {
@@ -30,7 +31,7 @@ func main() {
 	// 	isAI bool
 	// 	gameOver bool
 	// }
-	myInput := &UserInput{"Ash", "", empoleon, myTeam, "", false, false}
+	myInput := &UserInput{"Ash", "", missingno, myTeam, "", false, false}
 	cynthiasInput := &UserInput{"Cynthia", "", spiritomb, cynthiasTeam, "", true, false}
 
 	Battle(myInput, cynthiasInput)

@@ -180,6 +180,7 @@ var PokemonList = map[string]PokemonData{
     "Magmortar": PokemonData{"Magmortar", 202, "Fire", "", 75, 95, 67, 125, 95, 83, [4]string{"Flamethrower", "Dark Pulse", "Thunderbolt", "Psychic"}}, 
     "Mamoswine": PokemonData{"Mamoswine", 205, "Ice", "Ground", 110, 130, 80, 70, 60, 80, [4]string{"Avalanche", "Earthquake", "Strength", "Stone Edge"}}, 
     "Froslass": PokemonData{"Froslass", 208, "Ice", "Ghost", 70, 80, 70, 80, 70, 110, [4]string{"Shadow Ball", "Ice Beam", "Thunderbolt", "Psychic"}},
+    "MissingNo": PokemonData{"MissingNo", 0, "Dragon", "Ghost", 300, 300, 300, 300, 300, 300, [4]string{"Shadow Ball", "Dragon Pulse", "Thunderbolt", "Surf"}},
 } 
 
 var winMessages = []string{"That was excellent. Truly, an outstanding battle. You gave the support your Pokémon needed to maximize their power. And you guided them with certainty to secure victory. You have both passion and calculating coolness. Together, you and your Pokémon can overcome any challenge that may come your way. Those are the impressions I got from our battle. I'm glad I got to take part in the crowning of Sinnoh's new Champion! Come with me. We'll take the lift."}   // win messages
