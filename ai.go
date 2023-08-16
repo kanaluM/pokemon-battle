@@ -1,5 +1,9 @@
 package main
 
+import (
+	"fmt"
+)
+
 // Handles AI choosing a move
 func ChooseMoveAI(aiInput *UserInput, userInput *UserInput) *UserInput {
 	// AI chooses the move with the highest damage
@@ -42,6 +46,7 @@ func ReplaceFaintedPokemonAI(aiInput *UserInput, userInput *UserInput) *UserInpu
 	if chosenPokemon == nil {
 		aiInput.gameOver = true
 	} else {
+		fmt.Println("\n[[", aiInput.username, "]] Go", chosenPokemon.name)
 		aiInput.activePokemon = chosenPokemon
 	}
 	return aiInput

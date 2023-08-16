@@ -99,7 +99,7 @@ func ReplaceFaintedPokemon(input *UserInput) *UserInput {
 		}
 		fmt.Println("[[ INVALID INPUT ]] Try again")
 	}
-	fmt.Println("\nSent out", nonFaintedPokemon[res].name)
+	fmt.Println("\n[[", input.username, "]]", "Go", nonFaintedPokemon[res].name)
 	input.activePokemon = nonFaintedPokemon[res]
 	return input
 }
@@ -133,8 +133,8 @@ func SwitchPokemon(input *UserInput) *UserInput {
 	if res == -1 {
 		return input
 	}
-	fmt.Println("\nCome back", activePokemon.name)
-	fmt.Println("Go", nonFaintedPokemon[res].name)
+	fmt.Println("\n[[", input.username, "]]", "Come back", activePokemon.name)
+	fmt.Println("\n[[", input.username, "]]", "Go", nonFaintedPokemon[res].name)
 	input.activePokemon = nonFaintedPokemon[res]
 	return input
 }

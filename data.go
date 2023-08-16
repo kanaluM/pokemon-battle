@@ -186,6 +186,7 @@ var winMessages = []string{"That was excellent. Truly, an outstanding battle. Yo
 var loseMessages = []string{"Smell ya later!", "Better luck next time", "Keep training", "Time to soft-reset", "You whited out...", "Come back when you're stronger", "Do or do not...there is no try", "Looks like you're blasting off again"}   // lose messages
 
 type UserInput struct {
+    username string
     action string
     activePokemon *Pokemon
     team []*Pokemon

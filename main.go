@@ -22,8 +22,16 @@ func main() {
 	myTeam := []*Pokemon{empoleon, torterra, infernape, staraptor, luxray, machamp}
 	cynthiasTeam := []*Pokemon{spiritomb, lucario, togekiss, roserade, milotic, garchomp}
 
-	myInput := &UserInput{"", empoleon, myTeam, "", false, false}
-	cynthiasInput := &UserInput{"", spiritomb, cynthiasTeam, "", true, false}
+	// type UserInput struct {
+	// 	action string
+	// 	activePokemon *Pokemon
+	// 	team []*Pokemon
+	// 	move string
+	// 	isAI bool
+	// 	gameOver bool
+	// }
+	myInput := &UserInput{"Ash", "", empoleon, myTeam, "", false, false}
+	cynthiasInput := &UserInput{"Cynthia", "", spiritomb, cynthiasTeam, "", true, false}
 
 	Battle(myInput, cynthiasInput)
 }

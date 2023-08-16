@@ -44,7 +44,7 @@ func AttackTurn(attacker *Pokemon, defender *Pokemon, move *Move) ([]string) {
 		messages = append(messages, defender.name + " fainted!")
 	} else {   // target survives
 		defender.hp -= damage
-		messages = append(messages, defender.name + " has " + strconv.Itoa(defender.hp) + " hp left")
+		messages = append(messages, defender.name + " lost " + strconv.Itoa(damage) + " health (" + strconv.Itoa(defender.hp) + " hp left)")
 	}
             
 	// apply statuses
@@ -123,10 +123,10 @@ func WholeTurn(userOneInput *UserInput, userTwoInput *UserInput) ([2][]string, b
 	var msgs [2][]string
 	var msg []string
 
+	fmt.Println("[[ NEEEEEEEEEEW TUUUUUUUUUUUURN ]]\n")
+
 	// turn order
 	userOneInput, userTwoInput = TurnOrder(userOneInput, userTwoInput)
-	// fmt.Println(userOneInput.activePokemon.name, userOneInput.activePokemon.speed)
-	// fmt.Println(userTwoInput.activePokemon.name, userTwoInput.activePokemon.speed)
 
 	// player 1 attacks
 	// TODO cannot flinch when moving first (probably should be refactored in future)
@@ -146,19 +146,31 @@ func WholeTurn(userOneInput *UserInput, userTwoInput *UserInput) ([2][]string, b
 			msg = AttackTurn(userOneInput.activePokemon, userTwoInput.activePokemon, &move)
 		}
 	}
+	for _, x := range msg {
+		fmt.Println(x)
+		time.Sleep(1 * time.Second)
+	}
+	fmt.Println()
 	msgs[0] = msg
 
 	// check if slower user has not fainted
 	// if it has, then send out a new Pokemon
 	if userTwoInput.activePokemon.fainted {
+		fmt.Println("we are over here")
 		if userTwoInput.isAI {
 			userTwoInput = ReplaceFaintedPokemonAI(userTwoInput, userOneInput)
 		} else {
 			userTwoInput = ReplaceFaintedPokemon(userTwoInput)
 		}
+
+		// slower pokemon does not get a turn if fainted
 		if userTwoInput.gameOver {
-			msgs[0] = append(msgs[0], "Someone is out of usable Pokemon...", "Someone whited out!") 
+			// msgs[0] = append(msgs[0], userTwoInput.username + " is out of usable Pokemon...", userTwoInput.username + " whited out!") 
+			fmt.Println(userTwoInput.username, "is out of usable Pokemon...")
+			fmt.Println(userTwoInput.username, "whited out!") 
 			return msgs, true
+		} else {
+			return msgs, false
 		}
 	}
 
@@ -174,18 +186,26 @@ func WholeTurn(userOneInput *UserInput, userTwoInput *UserInput) ([2][]string, b
 			msg = AttackTurn(userTwoInput.activePokemon, userOneInput.activePokemon, &move)
 		}
 	}
+	for _, x := range msg {
+		fmt.Println(x)
+		time.Sleep(1 * time.Second)
+	}
+	fmt.Println()
 	msgs[1] = msg
 
 	// check if faster user has not fainted
 	// if it has, then send out a new Pokemon
 	if userOneInput.activePokemon.fainted {
+		fmt.Println("we are here")
 		if userOneInput.isAI {
-			userTwoInput = ReplaceFaintedPokemonAI(userOneInput, userTwoInput)
+			userOneInput = ReplaceFaintedPokemonAI(userOneInput, userTwoInput)
 		} else {
 			userOneInput = ReplaceFaintedPokemon(userOneInput)
 		}
 		if userOneInput.gameOver {
-			msgs[1] = append(msgs[1], "Someone is out of usable Pokemon...", "Someone whited out!") 
+			// msgs[1] = append(msgs[1], userOneInput.username + " is out of usable Pokemon...", userOneInput.username + " whited out!") 
+			fmt.Println(userOneInput.username, "is out of usable Pokemon...")
+			fmt.Println(userOneInput.username, "whited out!") 
 			return msgs, true
 		}
 	}
@@ -206,21 +226,23 @@ func IsLoser(team []*Pokemon) bool {
 
 // wrapper function for a whole 6v6 singles battle
 func Battle(userOneInput *UserInput, userTwoInput *UserInput) {
-	fmt.Println("[[ BATTLE ]] Starting a battle\n")
+	fmt.Println("\n[[ BATTLE ]] Starting a battle\n")
+	fmt.Println(userOneInput.username, "sent out", userOneInput.activePokemon.name)
+	fmt.Println(userTwoInput.username, "sent out", userTwoInput.activePokemon.name, "\n")
 
-	var msgs [2][]string
+	// var msgs [2][]string
 	var gameOver bool
 	for {
-		msgs, gameOver = WholeTurn(userOneInput, userTwoInput)
-		for _, x := range msgs[0] {
-			fmt.Println(x)
-			time.Sleep(1 * time.Second)
-		}
-		fmt.Println()
-		for _, y := range msgs[1] {
-			fmt.Println(y)
-			time.Sleep(1 * time.Second)
-		}
+		_, gameOver = WholeTurn(userOneInput, userTwoInput)
+		// for _, x := range msgs[0] {
+		// 	fmt.Println(x)
+		// 	time.Sleep(1 * time.Second)
+		// }
+		// fmt.Println()
+		// for _, y := range msgs[1] {
+		// 	fmt.Println(y)
+		// 	time.Sleep(1 * time.Second)
+		// }
 		fmt.Println()
 		if gameOver {
 			break
