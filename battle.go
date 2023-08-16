@@ -193,11 +193,10 @@ func WholeTurn(userOneInput *UserInput, userTwoInput *UserInput) bool {
 
 // wrapper function for a whole 6v6 singles battle
 func Battle(userOneInput *UserInput, userTwoInput *UserInput) {
-	fmt.Println("\n[[ BATTLE ]] Starting a battle\n")
+	fmt.Println("[[ BATTLE ]] Starting a battle\n")
 	fmt.Println(userOneInput.username, "sent out", userOneInput.activePokemon.name)
 	fmt.Println(userTwoInput.username, "sent out", userTwoInput.activePokemon.name, "\n")
 
-	// var msgs [2][]string
 	var gameOver bool
 	for {
 		gameOver = WholeTurn(userOneInput, userTwoInput)

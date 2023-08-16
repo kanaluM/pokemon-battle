@@ -1,18 +1,10 @@
 package main
 
 import (
-	// "fmt"
+	"fmt"
 )
 
 func main() {
-	missingno := NewPokemon("MissingNo", true)
-	// empoleon := NewPokemon("Empoleon", true)
-	torterra := NewPokemon("Torterra", true)
-	infernape := NewPokemon("Infernape", true)
-	staraptor := NewPokemon("Staraptor", true)
-	luxray := NewPokemon("Luxray", true)
-	machamp := NewPokemon("Machamp", true)
-	
 	spiritomb := NewPokemon("Spiritomb", true)
 	lucario := NewPokemon("Lucario", true)
 	togekiss := NewPokemon("Togekiss", true)
@@ -20,7 +12,6 @@ func main() {
 	milotic := NewPokemon("Milotic", true)
 	garchomp := NewPokemon("Garchomp", true)
 
-	myTeam := []*Pokemon{missingno, torterra, infernape, staraptor, luxray, machamp}
 	cynthiasTeam := []*Pokemon{spiritomb, lucario, togekiss, roserade, milotic, garchomp}
 
 	// type UserInput struct {
@@ -31,8 +22,13 @@ func main() {
 	// 	isAI bool
 	// 	gameOver bool
 	// }
-	myInput := &UserInput{"Ash", "", missingno, myTeam, "", false, false}
+	myInput := &UserInput{"Ash", "", nil, nil, "", false, false}
 	cynthiasInput := &UserInput{"Cynthia", "", spiritomb, cynthiasTeam, "", true, false}
+
+	fmt.Println()
+	ChooseName(myInput)
+	ChooseTeam(myInput)
+	myInput.activePokemon = myInput.team[0]
 
 	Battle(myInput, cynthiasInput)
 }
